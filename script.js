@@ -15,10 +15,10 @@ let questions = [
     {
         question : "How do you write a multi-line comment in JavaScript?",
         answers : [
-            "/* This is a \nmulti-line comment */",
-            "// This is a \nmulti-line comment //",
-            "/* This is a\tmulti-line comment */",
-            "<!-- This is a \n multi-line comment -->",
+            "<code>/* This is a<br>multi-line comment */</code> ",
+            "<code>// This is a <br> multi-line comment //</code>",
+            "<code>/* This is a</code> <code> multi-line comment */</code>",
+            "<code> <-- This is a <br> multi-line comment --> </code>",
         ],
         correct : 0 
     },
@@ -63,7 +63,8 @@ let questions = [
         correct : 0
     },
 
-]
+];
+
 
 updateChrono = () => {
     document.getElementsByClassName("chrono")[0].innerHTML = `Time: ${timer}s`;
@@ -73,21 +74,35 @@ updateScore = () => {
     document.getElementsByClassName("score")[0].innerHTML = `Score: ${score}`;
 }
 
-showNextQuestion = () => {
-    
-
-}
-
-
 startQuizz = () => {
     // remove Start Button
     document.getElementsByClassName("start-btn")[0].remove();
-    // show question div
-    let questionDiv = document.createElement('div');
-    questionDiv.className = 'question';
     showQuestions();
+    showSubmit();
 }
+function showQuestions()  {
+    questions.forEach((currentItem,questionIndex)=>{
+        // create question div
+        let questionDiv = document.createElement('div');
+        questionDiv.className = 'question';
+        questionDiv.setAttribute('name',`question-${questionIndex}`);
+        
+        let questionText = document.createElement('div');
+        questionText.textContent = currentItem.question;
 
+        questionDiv.appendChild(questionText);
+        document.getElementById('quizz').appendChild(questionDiv);
+        // create options container
+        let answersDiv = document.createElement('ul');
+        answersDiv.innerHTML = currentItem.answers.map((answer,answerIndex)=>
+            `<li>
+                <input type="radio" name="answer_${answerIndex}" value="${answer}">
+                <label for="answer_${answerIndex}">${answer}</label>
+            </li>`
+        ).join(' ');
+        questionDiv.appendChild(answersDiv);
+    });
+}
 startTimer = () => {
     setInterval(() => {
         timer++;
