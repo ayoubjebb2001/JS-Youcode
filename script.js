@@ -1,5 +1,6 @@
 let timer = 0;
 let score = 0;
+let counterInterval;
 
 let questions = [
     {
@@ -67,12 +68,12 @@ let questions = [
 
 
 updateChrono = () => {
-    document.getElementsByClassName("chrono")[0].innerHTML = `Time: ${timer}s`;
+    document.getElementsByClassName("chrono")[0].innerHTML = `Time: ${timer.toFixed(2)}s`;
 }
 
 updateScore = () => {
-    document.getElementsByClassName("score")[0].innerHTML = `Score: ${score}`;
-}
+    document.getElementsByClassName("score")[0].innerHTML = `Score: ${score} / ${questions.length}`;
+}       
 
 startQuizz = () => {
     // remove Start Button
@@ -96,7 +97,7 @@ function showQuestions()  {
         let answersDiv = document.createElement('ul');
         answersDiv.innerHTML = currentItem.answers.map((answer,answerIndex)=>
             `<li>
-                <input type="radio" name="question_${questionIndex}" value="${answer}">
+                <input type="radio" name="question_${questionIndex}" value="${answerIndex}">
                 <label for="question_${questionIndex}">${answer}</label>
             </li>`
         ).join(' ');
@@ -105,26 +106,34 @@ function showQuestions()  {
 }
 
 function showResult(){
-    
+    questions.forEach( (currentItem,questionIndex) => {
+        let selectedOption = document.querySelectorAll(`input[name='question_${questionIndex}']:checked`)[0];
+        if(selectedOption.value == currentItem.correct){
+            score ++;
+        }
+    })
+
+    updateScore();
 }
 
 function showSubmit() {
     let submitBtn = document.createElement('button');
     submitBtn.className = 'submit-btn';
-    submitBtn.value = "Valider";
+    submitBtn.textContent = "Valider";
     document.getElementById('quizz-container').appendChild(submitBtn);
 
     submitBtn.addEventListener("click", (event)=>{
         event.preventDefault();
+        clearInterval(counterInterval);
         showResult();
     })
 }
 
 startTimer = () => {
-    setInterval(() => {
-        timer++;
+    counterInterval = setInterval(() => { 
+        timer = (timer*100 + 0.1*100) / 100;
         updateChrono();
-    }, 1000);
+    }, 100);
 }
 document.addEventListener ("DOMContentLoaded", (event) => {
     updateChrono();
