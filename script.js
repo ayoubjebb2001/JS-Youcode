@@ -96,13 +96,30 @@ function showQuestions()  {
         let answersDiv = document.createElement('ul');
         answersDiv.innerHTML = currentItem.answers.map((answer,answerIndex)=>
             `<li>
-                <input type="radio" name="answer_${answerIndex}" value="${answer}">
-                <label for="answer_${answerIndex}">${answer}</label>
+                <input type="radio" name="question_${questionIndex}" value="${answer}">
+                <label for="question_${questionIndex}">${answer}</label>
             </li>`
         ).join(' ');
         questionDiv.appendChild(answersDiv);
     });
 }
+
+function showResult(){
+    
+}
+
+function showSubmit() {
+    let submitBtn = document.createElement('button');
+    submitBtn.className = 'submit-btn';
+    submitBtn.value = "Valider";
+    document.getElementById('quizz-container').appendChild(submitBtn);
+
+    submitBtn.addEventListener("click", (event)=>{
+        event.preventDefault();
+        showResult();
+    })
+}
+
 startTimer = () => {
     setInterval(() => {
         timer++;
