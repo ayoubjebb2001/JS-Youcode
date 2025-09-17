@@ -4,64 +4,64 @@ let counterInterval;
 
 let questions = [
     {
-        question : "How do you write a single-line comment in JavaScript?",
-        answers : [
+        question: "How do you write a single-line comment in JavaScript?",
+        answers: [
             "// This is a comment",
             "/* This is a comment */",
             "# This is a comment",
             "-- This is a comment",
         ],
-        correct : 0 
+        correct: 0
     },
     {
-        question : "How do you write a multi-line comment in JavaScript?",
-        answers : [
+        question: "How do you write a multi-line comment in JavaScript?",
+        answers: [
             "<code>/* This is a<br>multi-line comment */</code> ",
             "<code>// This is a <br> multi-line comment //</code>",
             "<code>/* This is a</code> <code> multi-line comment */</code>",
             "<code> <-- This is a <br> multi-line comment --> </code>",
         ],
-        correct : 0 
+        correct: 0
     },
-        {
-        question : "Which of the following is a valid variable name in JavaScript?",
-        answers : [
+    {
+        question: "Which of the following is a valid variable name in JavaScript?",
+        answers: [
             "let 1stPlace",
             "let firstPlace",
             "let first-place",
             "let first place",
         ],
-        correct : 1 
+        correct: 1
     },
     {
-        question : "What will be the output of the following code: console.log(0x1a);?",
-        answers : [
+        question: "What will be the output of the following code: console.log(0x1a);?",
+        answers: [
             "1a",
             "0x1a",
             "26",
             "10",
         ],
-        correct : 2 
+        correct: 2
     },
     {
-        question : "Which function is used to cast a non-Boolean value to a boolean value in JavaScript?",
-        answers : [
+        question: "Which function is used to cast a non-Boolean value to a boolean value in JavaScript?",
+        answers: [
             "CastBoolean()",
             "ToBoolean",
             "ConvertToBoolean()",
             "Boolean()",
         ],
-        correct : 3
+        correct: 3
     },
     {
-        question : "What will be the output of the following code: let error = 'An error occurred'; if (error) { console.log(error); }?",
-        answers : [
+        question: "What will be the output of the following code: let error = 'An error occurred'; if (error) { console.log(error); }?",
+        answers: [
             "An error occured",
             "true",
             "undefined",
             "false",
         ],
-        correct : 0
+        correct: 0
     },
 
 ];
@@ -73,21 +73,15 @@ updateChrono = () => {
 
 updateScore = () => {
     document.getElementsByClassName("score")[0].innerHTML = `Score: ${score} / ${questions.length}`;
-}       
-
-startQuizz = () => {
-    // remove Start Button
-    document.getElementsByClassName("start-btn")[0].remove();
-    showQuestions();
-    showSubmit();
 }
-function showQuestions()  {
-    questions.forEach((currentItem,questionIndex)=>{
+
+function showQuestions() {
+    questions.forEach((currentItem, questionIndex) => {
         // create question div
         let questionDiv = document.createElement('div');
         questionDiv.className = 'question';
-        questionDiv.setAttribute('name',`question-${questionIndex}`);
-        
+        questionDiv.setAttribute('name', `question-${questionIndex}`);
+
         let questionText = document.createElement('div');
         questionText.textContent = currentItem.question;
 
@@ -95,7 +89,7 @@ function showQuestions()  {
         document.getElementById('quizz').appendChild(questionDiv);
         // create options container
         let answersDiv = document.createElement('ul');
-        answersDiv.innerHTML = currentItem.answers.map((answer,answerIndex)=>
+        answersDiv.innerHTML = currentItem.answers.map((answer, answerIndex) =>
             `<li>
                 <input type="radio" name="question_${questionIndex}" value="${answerIndex}">
                 <label for="question_${questionIndex}">${answer}</label>
@@ -105,37 +99,73 @@ function showQuestions()  {
     });
 }
 
-function showResult(){
-    questions.forEach( (currentItem,questionIndex) => {
-        let selectedOption = document.querySelectorAll(`input[name='question_${questionIndex}']:checked`)[0];
-        if(selectedOption.value == currentItem.correct){
-            score ++;
-        }
-    })
-
-    updateScore();
+startQuizz = () => {
+    // remove Start Button
+    document.getElementsByClassName("start-btn")[0].remove();
+    showQuestions();
+    showSubmit();
 }
+
+function handleSubmit() {
+    clearInterval(counterInterval);
+    toggleOptions(false);
+    toggleSubmit(false);
+    showResult();
+    Repeat();
+}
+
 
 function showSubmit() {
     let submitBtn = document.createElement('button');
-    submitBtn.className = 'submit-btn';
+    submitBtn.className = 'submit btn';
     submitBtn.textContent = "Valider";
     document.getElementById('quizz-container').appendChild(submitBtn);
 
-    submitBtn.addEventListener("click", (event)=>{
-        event.preventDefault();
-        clearInterval(counterInterval);
-        showResult();
-    })
+    submitBtn.addEventListener("click", handleSubmit);
 }
 
+
+
 startTimer = () => {
-    counterInterval = setInterval(() => { 
-        timer = (timer*100 + 0.1*100) / 100;
+    counterInterval = setInterval(() => {
+        timer = (timer * 100 + 0.1 * 100) / 100;
         updateChrono();
     }, 100);
 }
-document.addEventListener ("DOMContentLoaded", (event) => {
+
+function toggleSubmit(enabled) {
+    document.getElementsByClassName('submit')[0].disabled = !enabled;
+}
+
+function toggleOptions(enabled) {
+    let options = document.querySelectorAll(`input[type='radio']:not(:checked)`);
+    options.forEach((radioOption) => {
+        radioOption.disabled = !enabled;
+    });
+}
+
+function Repeat() {
+    let repeatBtn = document.createElement('button');
+    repeatBtn.className = 'repeat btn';
+    repeatBtn.innerText = 'Rejouer';
+    repeatBtn.addEventListener('click', (event) => {
+        event.preventDefault();
+        score = 0;
+        toggleOptions(true)
+    });
+    repeatBtn.after(document.getElementsByClassName('submit')[0]);
+}
+
+function showResult() {
+    questions.forEach((currentItem, questionIndex) => {
+        let selectedOption = document.querySelectorAll(`input[name='question_${questionIndex}']:checked`);
+        if (selectedOption.value == currentItem.correct) {
+            score++;
+        }
+    });
+}
+
+document.addEventListener("DOMContentLoaded", (event) => {
     updateChrono();
 
     document.getElementsByClassName("start-btn")[0].onclick = () => {
