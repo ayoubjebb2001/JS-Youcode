@@ -218,6 +218,29 @@ function showAvailaibleThemes(data) {
     }
 }
 
+/**
+ * 
+ * @param {string} username 
+ * @returns user data object {name , history}
+ */
+function loadUserData(username){
+    let activeUser = {username : username};
+    let users = JSON.parse(localStorage.getItem('users')) || [];
+    if(users.length == 0){
+        users.push(activeUser);
+    } else{
+        let found = users.find((user)=> user.username == username);
+        if(found == undefined){
+            users.push(activeUser);
+            localStorage.setItem('users',JSON.stringify(users));
+        }else{
+            activeUser = found ;
+        }
+    }
+    return activeUser;
+}
+
+
 document.addEventListener("DOMContentLoaded", (event) => {
     toggleStartQuiz((document.getElementById('username').value !== ''));
     updateChrono();
@@ -226,6 +249,8 @@ document.addEventListener("DOMContentLoaded", (event) => {
         toggleStartQuiz((event.target.value !== ''));
     })
     document.getElementsByClassName("start-btn")[0].onclick = () => {
+        const username = document.getElementById('username').value;
+        loadUserData(username);
         startQuizz();
         startTimer();
     }
