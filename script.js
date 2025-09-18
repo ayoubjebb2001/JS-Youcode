@@ -1,6 +1,7 @@
 let timelimit = 20;
 let score = 0;
-
+let chronoStart = 20;
+let timeIntervalID;
 
 let data = [
     {
@@ -128,76 +129,80 @@ updateScore = () => {
     document.getElementsByClassName("score")[0].innerHTML = `Score: ${score} / ${questions.length}`;
 }
 
+startTimer = () => {
+
+}
+
+updateTimer = (time) => {
+    document.getElementsByClassName("chrono")[0].innerHTML = `Timer : ${time.toFixed(2)}s`;
+}
+
+// create DOM structure 
+let currentQuestionFragment = new DocumentFragment();
+let questionNode = document.createElement('div');
+questionNode.className = 'question';
+let answersNode = document.createElement('div');
+answersNode.className = 'answers container';
+
+
+
 function showNextQuestion(index, quizQ) {
-    let questionDiv = document.createElement('div');
-    questionDiv.className = 'question'
-    questionDiv.innerText = quizQ.questions[index].question;
-    document.getElementById('quizz').appendChild(questionDiv);
-
-    let answersDiv = document.createElement('div');
-    answersDiv.className = 'answers container';
-    if (quizQ.questions[index].correct.length > 1) {
-        let multiAnswers = document.createElement('div');
-        multiAnswers.style.fontStyle = 'italic';
-        multiAnswers.innerText = `Plusieurs réponses sont possibles`;
-        answersDiv.appendChild(multiAnswers);
-    }
-    let fragment = new DocumentFragment();
-    quizQ.questions[index].answers.forEach((answer, answerIndex) => {
-        let answerDiv = document.createElement('div');
-        answerDiv.className = 'answer';
-        document.getElementById('quizz').appendChild(answerDiv);
+    if (index == quizQ.length - 1) {
+        showResult();
+    } else {
+        // Remove last question DOM Text 
+        currentQuestionFragment.replaceChildren();
+        // Insert empty Nodes
+        currentQuestionFragment.appendChild(questionNode);
+        currentQuestionFragment.appendChild(answersNode);
 
 
-        let optionInput = document.createElement('li');
-
-
-        if (quizQ.questions[index].correct.length > 1) {
-
-            optionInput.innerHTML = `<input type='checkbox' name='question_${index}' value=${answerIndex}>
-                                     ${answer} </input>`
-
-        } else {
-            optionInput.innerHTML = `<input type='radio' name='question_${index}' value=${answerIndex}>
-                                     ${answer} </input>`
+        questionNode.innerText = quizQ[index].question;
+        if (quizQ[index].correct.length > 1) {
+            let multiAnswers = document.createElement('div');
+            multiAnswers.style.fontStyle = 'italic';
+            multiAnswers.innerText = `Plusieurs réponses sont possibles`;
+            answersNode.prepend(multiAnswers);
         }
-        fragment.appendChild(optionInput);
-    })
-    answersDiv.appendChild(fragment);
-    document.getElementById('quizz').appendChild(answersDiv);
-    showSubmit();
-    toggleSubmit(true);
+        let Answerfragment = new DocumentFragment();
+        quizQ[index].answers.forEach((answer, answerIndex) => {
+            let answerDiv = document.createElement('div');
+            answerDiv.className = 'answer';
+            document.getElementById('quizz').appendChild(answerDiv);
+
+
+            let optionInput = document.createElement('li');
+
+
+            if (quizQ[index].correct.length > 1) {
+
+                optionInput.innerHTML = `<input type='checkbox' name='question_${index}' value=${answerIndex}>
+                                     ${answer} </input>`
+
+            } else {
+                optionInput.innerHTML = `<input type='radio' name='question_${index}' value=${answerIndex}>
+                                     ${answer} </input>`
+            }
+
+            answerDiv.appendChild(optionInput);
+            answersNode.appendChild(answerDiv);
+        })
+        currentQuestionFragment.appendChild(answersNode);
+        document.getElementById('quizz').appendChild(currentQuestionFragment);
+        showSubmit();
+        toggleSubmit(true);
+    }
 }
 
-function showQuestions(theme) {
 
-
-    let i = 0;
-    setTimeout(() => {
-        showNextQuestion(i);
-        i++;
-    }, 1000 * timelimit);
-}
-
-startQuizz = (userdata, theme) => {
+function startQuizz(userdata, theme) {
     // remove Start Button
     document.getElementsByClassName("start-btn")[0].remove();
     let userQuiz = data.find((item) => item.theme == "syntax");
     shuffleArray(userQuiz.questions);
 
 
-    showNextQuestion(0, userQuiz);
-
-
-    // quizQuestions = shuffleArray(quizQuestions);
-    // console.log(quizQuestions);
-
-    // for (let i = 0; i < quizQuestions.length; i++) {
-    //     setInterval(() => {
-    //         showNextQuestion(i, quizQuestions);
-    //     }, timelimit * 1000);
-    // }
-    // showSubmit();
+    showNextQuestion(0, userQuiz.questions);
 }
 
 function handleSubmit() {
