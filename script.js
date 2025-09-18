@@ -1,80 +1,87 @@
-let timer = 0;
+let timelimit = 20;
 let score = 0;
-let counterInterval;
 
-let questions = [
-    [
-        { theme: "syntax" },
-        {
-            question: "How do you write a single-line comment in JavaScript?",
-            answers: [
-                "// This is a comment",
-                "/* This is a comment */",
-                "# This is a comment",
-                "-- This is a comment",
-            ],
-            correct: 0
-        },
-        {
-            question: "How do you write a multi-line comment in JavaScript?",
-            answers: [
-                "<code>/* This is a<br>multi-line comment */</code> ",
-                "<code>// This is a <br> multi-line comment //</code>",
-                "<code>/* This is a</code> <code> multi-line comment */</code>",
-                "<code> <-- This is a <br> multi-line comment --> </code>",
-            ],
-            correct: 0
-        },
-        {
-            question: "Which of the following is a valid variable name in JavaScript?",
-            answers: [
-                "let 1stPlace",
-                "let firstPlace",
-                "let first-place",
-                "let first place",
-            ],
-            correct: 1
-        }
-    ],
-    [
-        {
-            theme: 'number'
-        },
-        {
-            question: "What will be the output of the following code: console.log(0x1a);?",
-            answers: [
-                "1a",
-                "0x1a",
-                "26",
-                "10",
-            ],
-            correct: 2
-        }],
-    [
-        {
-            theme: 'boolean'
-        },
-        {
-            question: "Which function is used to cast a non-Boolean value to a boolean value in JavaScript?",
-            answers: [
-                "CastBoolean()",
-                "ToBoolean",
-                "ConvertToBoolean()",
-                "Boolean()",
-            ],
-            correct: 3
-        },
-        {
-            question: "What will be the output of the following code: let error = 'An error occurred'; if (error) { console.log(error); }?",
-            answers: [
-                "An error occured",
-                "true",
-                "undefined",
-                "false",
-            ],
-            correct: 0
-        }
-    ]
+
+let data = [
+    {
+        theme: "syntax",
+        questions:
+            [
+                {
+                    question: "How do you write a single-line comment in JavaScript?",
+                    answers: [
+                        "// This is a comment",
+                        "/* This is a comment */",
+                        "# This is a comment",
+                        "-- This is a comment",
+                    ],
+                    correct: 0,
+                },
+                {
+                    question: "How do you write a multi-line comment in JavaScript?",
+                    answers: [
+                        "<code>/* This is a<br>multi-line comment */</code> ",
+                        "<code>// This is a <br> multi-line comment //</code>",
+                        "<code>/* This is a</code> <code> multi-line comment */</code>",
+                        "<code> <-- This is a <br> multi-line comment --> </code>",
+                    ],
+                    correct: 0,
+                },
+                {
+                    question: "Which of the following is a valid variable name in JavaScript?",
+                    answers: [
+                        "let 1stPlace",
+                        "let firstPlace",
+                        "let first-place",
+                        "let first place",
+                    ],
+                    correct: 1
+                }
+            ]
+    },
+    {
+        theme: 'number',
+        questions:
+            [
+                {
+                    question: "What will be the output of the following code: console.log(0x1a);?",
+                    answers: [
+                        "1a",
+                        "0x1a",
+                        "26",
+                        "10",
+                    ],
+                    correct: 2
+                }
+            ]
+
+    },
+    {
+        theme: 'boolean',
+        questions:
+            [
+                {
+                    question: "Which function is used to cast a non-Boolean value to a boolean value in JavaScript?",
+                    answers: [
+                        "CastBoolean()",
+                        "ToBoolean",
+                        "ConvertToBoolean()",
+                        "Boolean()",
+                    ],
+                    correct: 3,
+                },
+                {
+                    question: "What will be the output of the following code: let error = 'An error occurred'; if (error) { console.log(error); }?",
+                    answers: [
+                        "An error occured",
+                        "true",
+                        "undefined",
+                        "false",
+                    ],
+                    correct: 0
+                }
+            ]
+    }
 ];
 
 // helpers 
@@ -117,50 +124,77 @@ function toggleStartQuiz(enabled) {
 }
 //
 
-
-updateChrono = () => {
-    document.getElementsByClassName("chrono")[0].innerHTML = `Time: ${timer.toFixed(2)}s`;
-}
-
 updateScore = () => {
     document.getElementsByClassName("score")[0].innerHTML = `Score: ${score} / ${questions.length}`;
 }
 
-function showQuestions() {
-    // create question div
+function showNextQuestion(index, quizQ) {
     let questionDiv = document.createElement('div');
-    questionDiv.className = 'question';
-    questionDiv.setAttribute('name', `question-${questionIndex}`);
-
-    let questionText = document.createElement('div');
-    questionText.textContent = currentItem.question;
-
-    questionDiv.appendChild(questionText);
+    questionDiv.className = 'question'
+    questionDiv.innerText = quizQ[index].question;
     document.getElementById('quizz').appendChild(questionDiv);
-    // create options container
-    let answersDiv = document.createElement('ul');
-    answersDiv.innerHTML = currentItem.answers.map((answer, answerIndex) =>
-        `<li>
-                <input type="radio" name="question_${questionIndex}" value="${answerIndex}">
-                <label for="question_${questionIndex}">${answer}</label>
-            </li>`
-    ).join(' ');
-    questionDiv.appendChild(answersDiv);
+
+    let answersDiv = document.createElement('div');
+    answersDiv.className = 'answers container';
+
+    let fragment = new DocumentFragment();
+    quizQ[index].answers.forEach((answer, answerIndex) => {
+        let answerDiv = document.createElement('div');
+        answerDiv.className = 'answer';
+        if (quizQ[index].correct.length > 1) {
+            let multiAnswers = document.createElement(div);
+            multiAnswers.style.fontStyle = 'italic';
+            multiAnswers.innerText = `Plusieurs réponses sont possibles`;
+            answerDiv.appendChild(multiAnswers);
+            let optionInput = document.createElement('li');
+            optionInput.innerHTML = `<input type='checkbox' name='question_${index}' value=${answerIndex}>
+                                     ${answer} </input>`
+            fragment.appendChild(optionInput);
+        }
+    })
+    answersDiv.appendChild(fragment);
+    document.getElementById('quizz').appendChild(answersDiv);
+
+
 }
 
-startQuizz = () => {
+function showQuestions(theme) {
+
+
+    let i = 0;
+    setTimeout(() => {
+        showNextQuestion(i);
+        i++;
+    }, 1000 * timelimit);
+}
+
+startQuizz = (userdata,theme) => {
     // remove Start Button
     document.getElementsByClassName("start-btn")[0].remove();
-    showQuestions();
-    showSubmit();
+    let userQuiz = data.find((item)=>item.theme == "syntax");
+    shuffleArray(userQuiz.questions);
+
+
+    showNextQuestion(0,userQuiz);
+    
+    
+    // quizQuestions = shuffleArray(quizQuestions);
+    // console.log(quizQuestions);
+
+    // for (let i = 0; i < quizQuestions.length; i++) {
+    //     setInterval(() => {
+    //         showNextQuestion(i, quizQuestions);
+    //     }, timelimit * 1000);
+    // }
+    // showSubmit();
 }
 
 function handleSubmit() {
     clearInterval(counterInterval);
     toggleOptions(false);
-    toggleSubmit(false);
-    showResult();
-    Repeat();
+    // toggleSubmit(false);
+    // showResult();
+    // Repeat();
 }
 
 
@@ -172,16 +206,6 @@ function showSubmit() {
 
     submitBtn.addEventListener("click", handleSubmit);
 }
-
-
-
-startTimer = () => {
-    counterInterval = setInterval(() => {
-        timer = (timer * 100 + 0.1 * 100) / 100;
-        updateChrono();
-    }, 100);
-}
-
 
 
 function Repeat() {
@@ -210,10 +234,10 @@ function showResult() {
  * @param {array} data - the array of questions
  */
 function showAvailaibleThemes(data) {
-    let themes = new Set(data.map((item) => item[0].theme));
-    
+    let themes = new Set(data.map((item) => item.theme));
+
     for (const theme of themes) {
-        let option = new Option(theme,theme,false,false);    
+        let option = new Option(theme, theme, false, false);
         document.getElementById('themes').add(option);
     }
 }
@@ -223,18 +247,19 @@ function showAvailaibleThemes(data) {
  * @param {string} username 
  * @returns user data object {name , history}
  */
-function loadUserData(username){
-    let activeUser = {username : username};
+function loadUserData(username) {
+    let activeUser = { username: username };
     let users = JSON.parse(localStorage.getItem('users')) || [];
-    if(users.length == 0){
+    if (users.length == 0) {
         users.push(activeUser);
-    } else{
-        let found = users.find((user)=> user.username == username);
-        if(found == undefined){
+        localStorage.setItem('users', JSON.stringify(users));
+    } else {
+        let found = users.find((user) => user.username == username);
+        if (found == undefined) {
             users.push(activeUser);
-            localStorage.setItem('users',JSON.stringify(users));
-        }else{
-            activeUser = found ;
+            localStorage.setItem('users', JSON.stringify(users));
+        } else {
+            activeUser = found;
         }
     }
     return activeUser;
@@ -243,16 +268,15 @@ function loadUserData(username){
 
 document.addEventListener("DOMContentLoaded", (event) => {
     toggleStartQuiz((document.getElementById('username').value !== ''));
-    updateChrono();
-    showAvailaibleThemes(questions);
-    document.getElementById('username').addEventListener('keyup',(event)=>{
+    showAvailaibleThemes(data);
+    document.getElementById('username').addEventListener('keyup', (event) => {
         toggleStartQuiz((event.target.value !== ''));
     })
     document.getElementsByClassName("start-btn")[0].onclick = () => {
         const username = document.getElementById('username').value;
-        loadUserData(username);
-        startQuizz();
-        startTimer();
+        let activeUser = loadUserData(username);
+        let theme = document.getElementById('themes').value;
+        startQuizz(activeUser,theme);
     }
 });
 
