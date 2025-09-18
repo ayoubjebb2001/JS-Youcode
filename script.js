@@ -1,7 +1,8 @@
-let timelimit = 20;
+let timelimit = 5;
 let score = 0;
 let chronoStart = 20;
-let timeIntervalID;
+let questionTimer;
+let timeUpdater;
 
 let data = [
     {
@@ -98,11 +99,11 @@ function shuffleArray(array) {
 }
 
 /**
- * Disable or enable Submit button depending on enabled 
+ * Disable or enable next button depending on enabled 
  * @param {boolean} enabled 
  */
-function toggleSubmit(enabled) {
-    document.getElementsByClassName('submit')[0].disabled = !enabled;
+function togglenext(enabled) {
+    document.getElementsByClassName('next')[0].disabled = !enabled;
 }
 
 /**
@@ -147,51 +148,63 @@ answersNode.className = 'answers container';
 
 
 function showNextQuestion(index, quizQ) {
-    if (index == quizQ.length - 1) {
-        showResult();
-    } else {
-        // Remove last question DOM Text 
-        currentQuestionFragment.replaceChildren();
-        // Insert empty Nodes
-        currentQuestionFragment.appendChild(questionNode);
-        currentQuestionFragment.appendChild(answersNode);
+    // Remove last question DOM Text
+    answersNode.replaceChildren();
+    currentQuestionFragment.replaceChildren();
+    // Insert empty Nodes
+    currentQuestionFragment.appendChild(questionNode);
+    currentQuestionFragment.appendChild(answersNode);
 
 
-        questionNode.innerText = quizQ[index].question;
-        if (quizQ[index].correct.length > 1) {
-            let multiAnswers = document.createElement('div');
-            multiAnswers.style.fontStyle = 'italic';
-            multiAnswers.innerText = `Plusieurs réponses sont possibles`;
-            answersNode.prepend(multiAnswers);
-        }
-        let Answerfragment = new DocumentFragment();
-        quizQ[index].answers.forEach((answer, answerIndex) => {
-            let answerDiv = document.createElement('div');
-            answerDiv.className = 'answer';
-            document.getElementById('quizz').appendChild(answerDiv);
-
-
-            let optionInput = document.createElement('li');
-
-
-            if (quizQ[index].correct.length > 1) {
-
-                optionInput.innerHTML = `<input type='checkbox' name='question_${index}' value=${answerIndex}>
-                                     ${answer} </input>`
-
-            } else {
-                optionInput.innerHTML = `<input type='radio' name='question_${index}' value=${answerIndex}>
-                                     ${answer} </input>`
-            }
-
-            answerDiv.appendChild(optionInput);
-            answersNode.appendChild(answerDiv);
-        })
-        currentQuestionFragment.appendChild(answersNode);
-        document.getElementById('quizz').appendChild(currentQuestionFragment);
-        showSubmit();
-        toggleSubmit(true);
+    questionNode.innerText = quizQ[index].question;
+    if (quizQ[index].correct.length > 1) {
+        let multiAnswers = document.createElement('div');
+        multiAnswers.style.fontStyle = 'italic';
+        multiAnswers.innerText = `Plusieurs réponses sont possibles`;
+        answersNode.prepend(multiAnswers);
     }
+    quizQ[index].answers.forEach((answer, answerIndex) => {
+        let answerDiv = document.createElement('div');
+        answerDiv.className = 'answer';
+        answersNode.appendChild(answerDiv);
+
+
+        let optionInput = document.createElement('li');
+
+
+        if (quizQ[index].correct.length > 1) {
+
+            optionInput.innerHTML = `<input type='checkbox' name='question_${index}' value=${answerIndex}>
+                                     ${answer} </input>`
+
+        } else {
+            optionInput.innerHTML = `<input type='radio' name='question_${index}' value=${answerIndex}>
+                                     ${answer} </input>`
+        }
+
+        answerDiv.appendChild(optionInput);
+        answersNode.appendChild(answerDiv);
+    })
+    currentQuestionFragment.appendChild(answersNode);
+    document.getElementById('quizz').appendChild(currentQuestionFragment);
+
+    togglenext(true);
+    var time = timelimit
+    timeUpdater = setInterval(() => {
+        updateTimer(time);
+        time = (time * 100 - 0.01 * 100) / 100;
+    }, 10);
+
+    questionTimer = setTimeout(() => {
+        clearInterval(timeUpdater);
+        if(index == quizQ.length-1) {
+            // showResult();
+            console.log("last question");
+        }else{
+
+            showNextQuestion(++index, quizQ);
+        }
+    }, timelimit * 1000);
 }
 
 
@@ -200,27 +213,25 @@ function startQuizz(userdata, theme) {
     document.getElementsByClassName("start-btn")[0].remove();
     let userQuiz = data.find((item) => item.theme == "syntax");
     shuffleArray(userQuiz.questions);
-
-
+    showNext();
     showNextQuestion(0, userQuiz.questions);
 }
 
-function handleSubmit() {
-    clearInterval(counterInterval);
+function handleNext() {
     toggleOptions(false);
-    // toggleSubmit(false);
+    // togglenext(false);
     // showResult();
     // Repeat();
 }
 
 
-function showSubmit() {
-    let submitBtn = document.createElement('button');
-    submitBtn.className = 'submit btn';
-    submitBtn.textContent = "Valider";
-    document.getElementById('quizz-container').appendChild(submitBtn);
+function showNext() {
+    let nextBtn = document.createElement('button');
+    nextBtn.className = 'next btn';
+    nextBtn.textContent = "Suivant";
+    document.getElementById('quizz-container').appendChild(nextBtn);
 
-    submitBtn.addEventListener("click", handleSubmit);
+    nextBtn.addEventListener("click", handleNext);
 }
 
 
@@ -233,7 +244,7 @@ function Repeat() {
         score = 0;
         toggleOptions(true)
     });
-    repeatBtn.after(document.getElementsByClassName('submit')[0]);
+    repeatBtn.after(document.getElementsByClassName('next')[0]);
 }
 
 function showResult() {
