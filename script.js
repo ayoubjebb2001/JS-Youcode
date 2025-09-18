@@ -15,7 +15,7 @@ let data = [
                         "# This is a comment",
                         "-- This is a comment",
                     ],
-                    correct: 0,
+                    correct: [0, 1],
                 },
                 {
                     question: "How do you write a multi-line comment in JavaScript?",
@@ -25,7 +25,7 @@ let data = [
                         "<code>/* This is a</code> <code> multi-line comment */</code>",
                         "<code> <-- This is a <br> multi-line comment --> </code>",
                     ],
-                    correct: 0,
+                    correct: [0],
                 },
                 {
                     question: "Which of the following is a valid variable name in JavaScript?",
@@ -35,7 +35,7 @@ let data = [
                         "let first-place",
                         "let first place",
                     ],
-                    correct: 1
+                    correct: [1]
                 }
             ]
     },
@@ -51,7 +51,7 @@ let data = [
                         "26",
                         "10",
                     ],
-                    correct: 2
+                    correct: [2]
                 }
             ]
 
@@ -68,7 +68,7 @@ let data = [
                         "ConvertToBoolean()",
                         "Boolean()",
                     ],
-                    correct: 3,
+                    correct: [3],
                 },
                 {
                     question: "What will be the output of the following code: let error = 'An error occurred'; if (error) { console.log(error); }?",
@@ -78,7 +78,7 @@ let data = [
                         "undefined",
                         "false",
                     ],
-                    correct: 0
+                    correct: [0]
                 }
             ]
     }
@@ -131,31 +131,42 @@ updateScore = () => {
 function showNextQuestion(index, quizQ) {
     let questionDiv = document.createElement('div');
     questionDiv.className = 'question'
-    questionDiv.innerText = quizQ[index].question;
+    questionDiv.innerText = quizQ.questions[index].question;
     document.getElementById('quizz').appendChild(questionDiv);
 
     let answersDiv = document.createElement('div');
     answersDiv.className = 'answers container';
-
+    if (quizQ.questions[index].correct.length > 1) {
+        let multiAnswers = document.createElement('div');
+        multiAnswers.style.fontStyle = 'italic';
+        multiAnswers.innerText = `Plusieurs réponses sont possibles`;
+        answersDiv.appendChild(multiAnswers);
+    }
     let fragment = new DocumentFragment();
-    quizQ[index].answers.forEach((answer, answerIndex) => {
+    quizQ.questions[index].answers.forEach((answer, answerIndex) => {
         let answerDiv = document.createElement('div');
         answerDiv.className = 'answer';
-        if (quizQ[index].correct.length > 1) {
-            let multiAnswers = document.createElement(div);
-            multiAnswers.style.fontStyle = 'italic';
-            multiAnswers.innerText = `Plusieurs réponses sont possibles`;
-            answerDiv.appendChild(multiAnswers);
-            let optionInput = document.createElement('li');
+        document.getElementById('quizz').appendChild(answerDiv);
+
+
+        let optionInput = document.createElement('li');
+
+
+        if (quizQ.questions[index].correct.length > 1) {
+
             optionInput.innerHTML = `<input type='checkbox' name='question_${index}' value=${answerIndex}>
                                      ${answer} </input>`
-            fragment.appendChild(optionInput);
+
+        } else {
+            optionInput.innerHTML = `<input type='radio' name='question_${index}' value=${answerIndex}>
+                                     ${answer} </input>`
         }
+        fragment.appendChild(optionInput);
     })
     answersDiv.appendChild(fragment);
     document.getElementById('quizz').appendChild(answersDiv);
-
-
+    showSubmit();
+    toggleSubmit(true);
 }
 
 function showQuestions(theme) {
@@ -168,16 +179,16 @@ function showQuestions(theme) {
     }, 1000 * timelimit);
 }
 
-startQuizz = (userdata,theme) => {
+startQuizz = (userdata, theme) => {
     // remove Start Button
     document.getElementsByClassName("start-btn")[0].remove();
-    let userQuiz = data.find((item)=>item.theme == "syntax");
+    let userQuiz = data.find((item) => item.theme == "syntax");
     shuffleArray(userQuiz.questions);
 
 
-    showNextQuestion(0,userQuiz);
-    
-    
+    showNextQuestion(0, userQuiz);
+
+
     // quizQuestions = shuffleArray(quizQuestions);
     // console.log(quizQuestions);
 
@@ -276,7 +287,7 @@ document.addEventListener("DOMContentLoaded", (event) => {
         const username = document.getElementById('username').value;
         let activeUser = loadUserData(username);
         let theme = document.getElementById('themes').value;
-        startQuizz(activeUser,theme);
+        startQuizz(activeUser, theme);
     }
 });
 
