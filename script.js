@@ -179,7 +179,7 @@ function showNextQuestion(index, quizQ) {
     currentQuestionFragment.appendChild(answersNode);
 
     questionNode.setAttribute('data-index', index);
-    questionNode.innerText =  `Question ${index+1} of ${quizQ.length} ${quizQ[index].question}`;
+    questionNode.innerText = `Question ${index + 1} of ${quizQ.length} ${quizQ[index].question}`;
     if (quizQ[index].correct.length > 1) {
         let multiAnswers = document.createElement('div');
         multiAnswers.style.fontStyle = 'italic';
@@ -306,10 +306,8 @@ function evaluateAnswer() {
     if (currentQuestion.correct.length < 2) {
         // Single choice question (radio buttons)
         let option = answersNode.querySelector(`input[name=question_${questionIndex}]:checked`);
-        console.log(option);
 
         let selectedOption = (option == undefined) ? null : parseInt(option.value);
-        console.log(selectedOption);
 
         currentQuizData.answers[questionIndex].selected = selectedOption !== null ? [selectedOption] : [];
 
@@ -376,22 +374,9 @@ function finishQuiz() {
     localStorage.setItem('users', JSON.stringify(users));
 
     // Display final results
-    document.getElementById('quizz').innerHTML = `
-        <div style="text-align: center; padding: 2rem;">
-            <h2>🎉 Quiz Completed!</h2>
-            <div class="score" style="font-size: 2rem; margin: 1rem 0;">
-                Final Score: ${score} / ${userQuiz.questions.length}
-            </div>
-            <p style="font-size: 1.2rem; color: #6b7280;">
-                ${score === userQuiz.questions.length ? 'Perfect score! 🌟' :
-            score >= userQuiz.questions.length * 0.7 ? 'Great job! 👏' :
-                'Keep practicing! 💪'}
-            </p>
-            <button class="start-btn" onclick="location.reload()" style="margin-top: 1rem;">
-                Take Another Quiz
-            </button>
-        </div>
-    `;
+
+    displayFinalResults();
+
 
     // Remove next button if it exists
     let nextBtn = document.getElementById('next-btn');
@@ -404,16 +389,52 @@ function finishQuiz() {
 }
 
 
-function Repeat() {
-    let repeatBtn = document.createElement('button');
-    repeatBtn.className = 'repeat btn';
-    repeatBtn.innerText = 'Rejouer';
-    repeatBtn.addEventListener('click', (event) => {
-        event.preventDefault();
-        score = 0;
-        toggleOptions(true)
-    });
-    repeatBtn.after(document.getElementsByClassName('next')[0]);
+function displayFinalResults() {
+    document.querySelector('.chrono').innerText = '';
+    document.getElementById('quizz').innerHTML = `
+        <div style="text-align: center; padding: 2rem;">
+            <h2>🎉 Quiz Completed!</h2>
+            <div class="score" style="font-size: 2rem; margin: 1rem 0;">
+                Final Score: ${score} / ${userQuiz.questions.length}
+            </div>
+            <p style="font-size: 1.2rem; color: #6b7280;">
+                ${score === userQuiz.questions.length ? 'Perfect score! 🌟' :
+            score >= userQuiz.questions.length * 0.7 ? 'Great job! 👏' :
+                'Keep practicing! 💪'}
+            </p>
+            <button class="restart-btn" style="margin-top: 1rem;">
+                Take Another Quiz
+            </button>
+        </div>
+    `;
+
+    document.querySelector('.restart-btn').addEventListener('click', restartQuiz);
+
+}
+
+function restartQuiz() {
+    activeUser = {
+
+    };
+    userQuiz = [];
+    currentQuizData = {
+        date: '',
+        score: 0,
+        answers: [],
+        theme: ""
+    };
+
+    document.querySelector('.score').innerText = '';
+    document.getElementById('username').value = "";
+    document.getElementById('username').setAttribute('placeholder','enter your username');
+    document.getElementById('themes').replaceChildren();
+
+    var startButton = document.createElement('button');
+    startButton.classList.add('start-btn');
+    startButton.innerText = 'Start';
+    document.getElementById('quizz').replaceChildren(startButton);
+
+    mainMenu();
 }
 
 function showResult() {
@@ -470,7 +491,7 @@ let currentQuizData = {
     theme: ""
 };
 
-document.addEventListener("DOMContentLoaded", (event) => {
+function mainMenu() {
     toggleStartQuiz((document.getElementById('username').value !== ''));
     showAvailaibleThemes(data);
     document.getElementById('username').addEventListener('keyup', (event) => {
@@ -482,7 +503,10 @@ document.addEventListener("DOMContentLoaded", (event) => {
         let theme = document.getElementById('themes').value;
         startQuizz(theme);
     }
-});
+
+}
+
+document.addEventListener("DOMContentLoaded", mainMenu);
 
 
 
