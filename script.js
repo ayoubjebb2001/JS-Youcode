@@ -133,24 +133,24 @@ function toggleStartQuiz(enabled) {
  * @returns true if the arrays contains same elements(order doesn't matter),false otherwise 
  */
 function areArraysEqualUnordered(arr1, arr2) {
-  if (arr1.length !== arr2.length) {
-    return false;
-  }
-  const sortedArr1 = [...arr1].sort(); // Create copies to avoid modifying original arrays
-  const sortedArr2 = [...arr2].sort();
-
-  for (let i = 0; i < sortedArr1.length; i++) {
-    if (sortedArr1[i] !== sortedArr2[i]) {
-      return false;
+    if (arr1.length !== arr2.length) {
+        return false;
     }
-  }
-  return true;
+    const sortedArr1 = [...arr1].sort(); // Create copies to avoid modifying original arrays
+    const sortedArr2 = [...arr2].sort();
+
+    for (let i = 0; i < sortedArr1.length; i++) {
+        if (sortedArr1[i] !== sortedArr2[i]) {
+            return false;
+        }
+    }
+    return true;
 }
 
 //
 
 updateScore = () => {
-    document.getElementsByClassName("score")[0].innerHTML = `Score: ${score} / ${questions.length}`;
+    document.getElementsByClassName("score")[0].innerHTML = `Score: ${score} / ${userQuiz.questions.length}`;
 }
 
 startTimer = () => {
@@ -178,8 +178,8 @@ function showNextQuestion(index, quizQ) {
     currentQuestionFragment.appendChild(questionNode);
     currentQuestionFragment.appendChild(answersNode);
 
-    questionNode.setAttribute('data-index',index);
-    questionNode.innerText = quizQ[index].question;
+    questionNode.setAttribute('data-index', index);
+    questionNode.innerText =  `Question ${index+1} of ${quizQ.length} ${quizQ[index].question}`;
     if (quizQ[index].correct.length > 1) {
         let multiAnswers = document.createElement('div');
         multiAnswers.style.fontStyle = 'italic';
@@ -220,11 +220,9 @@ function showNextQuestion(index, quizQ) {
 
     questionTimer = setTimeout(() => {
         clearInterval(timeUpdater);
-        if(index == quizQ.length-1) {
-            // showResult();
-            console.log("last question");
-        }else{
-
+        if (index == quizQ.length - 1) {
+            finishQuiz();
+        } else {
             showNextQuestion(++index, quizQ);
         }
     }, timelimit * 1000);
@@ -232,22 +230,54 @@ function showNextQuestion(index, quizQ) {
 
 
 function startQuizz(theme) {
+    // Initialize quiz data
+    score = 0;
+    currentQuizData = {
+        date: new Date().toISOString(),
+        score: 0,
+        answers: [],
+        theme: theme
+    };
+
     // remove Start Button
     document.getElementsByClassName("start-btn")[0].remove();
-    userQuiz = data.find((item) => item.theme == "syntax");
+    userQuiz = data.find((item) => item.theme == theme);
     shuffleArray(userQuiz.questions);
+
+    // Initialize answers array with correct length
+    for (let i = 0; i < userQuiz.questions.length; i++) {
+        currentQuizData.answers.push({
+            selected: [],
+            correct: false
+        });
+    }
+
     showNext();
     showNextQuestion(0, userQuiz.questions);
-    
+    updateScore();
 }
 
 function handleNext() {
+    clearTimeout(questionTimer);
+    clearInterval(timeUpdater);
+
     toggleOptions(false);
     toggleNext(true);
     evaluateAnswer();
-    // togglenext(false);
-    // showResult();
-    // Repeat();
+
+    let currentIndex = parseInt(questionNode.dataset['index']);
+
+    // Check if this was the last question
+    if (currentIndex >= userQuiz.questions.length - 1) {
+        finishQuiz();
+    } else {
+        // Move to next question after a short delay
+        setTimeout(() => {
+            showNextQuestion(currentIndex + 1, userQuiz.questions);
+            toggleNext(false);
+            toggleOptions(true);
+        }, 1500);
+    }
 }
 
 
@@ -260,37 +290,117 @@ function showNext() {
     nextBtn.addEventListener("click", handleNext);
 }
 
-function evaluateAnswer(){
-    let selectedOption;
-    let questionIndex = questionNode.dataset['index'];
-    if (userQuiz.questions[questionIndex].correct.length < 2){
+function evaluateAnswer() {
+    let selectedOptions = [];
+    let questionIndex = parseInt(questionNode.dataset['index']);
+    let currentQuestion = userQuiz.questions[questionIndex];
+
+    // Initialize answer object if not exists
+    if (!currentQuizData.answers[questionIndex]) {
+        currentQuizData.answers[questionIndex] = {
+            selected: [],
+            correct: false
+        };
+    }
+
+    if (currentQuestion.correct.length < 2) {
+        // Single choice question (radio buttons)
         let option = answersNode.querySelector(`input[name=question_${questionIndex}]:checked`);
         console.log(option);
 
-        selectedOption = (option == undefined)? null:option.value ;
+        let selectedOption = (option == undefined) ? null : parseInt(option.value);
         console.log(selectedOption);
 
-        currentQuizData.answers[questionIndex].selected = [selectedOption];
-        console.log(currentQuizData);
-        
-        if(selectedOption !== null && selectedOption == userQuiz.questions[questionIndex].correct[0]){
+        currentQuizData.answers[questionIndex].selected = selectedOption !== null ? [selectedOption] : [];
+
+        if (selectedOption !== null && selectedOption == currentQuestion.correct[0]) {
             currentQuizData.answers[questionIndex].correct = true;
+            score++;
             markCorrectAnswer(option);
+        } else {
+            currentQuizData.answers[questionIndex].correct = false;
+            if (option) {
+                markIncorrectAnswer(option);
+            }
+        }
+    } else {
+        // Multiple choice question (checkboxes)
+        let checkedOptions = answersNode.querySelectorAll(`input[name=question_${questionIndex}]:checked`);
+        selectedOptions = Array.from(checkedOptions).map(option => parseInt(option.value));
+
+        currentQuizData.answers[questionIndex].selected = selectedOptions;
+
+        // Check if selected answers match correct answers
+        let isCorrect = areArraysEqualUnordered(selectedOptions, currentQuestion.correct);
+        currentQuizData.answers[questionIndex].correct = isCorrect;
+
+        if (isCorrect) {
+            score++;
+            // Mark all selected options as correct
+            checkedOptions.forEach(option => markCorrectAnswer(option));
+        } else {
+            // Mark selected options as incorrect
+            checkedOptions.forEach(option => markIncorrectAnswer(option));
         }
     }
-    
-    let values = [];
-    // let questionIndex = questionNode.dataset.index;
-    // console.log(userQuiz[index]);
-    // let selectedOptions = answersNode.querySelectorAll(`input['name*=question_${questionIndex}']:checked`);
-    // selectedOptions.forEach((option) =>{
-    //     values = option.value;
-    // });
 
+    updateScore();
 }
 
-function markCorrectAnswer(nodeElem){
-    nodeElem.classList.add('correct')
+function markCorrectAnswer(nodeElem) {
+    nodeElem.parentNode.parentNode.classList.add('correct')
+}
+
+function markIncorrectAnswer(nodeElem) {
+    nodeElem.parentNode.parentNode.classList.add('incorrect')
+}
+
+function finishQuiz() {
+    // Update final score in currentQuizData
+    currentQuizData.score = score;
+
+    // Add quiz data to activeUser history
+    if (!activeUser.history) {
+        activeUser.history = [];
+    }
+    activeUser.history.push(currentQuizData);
+
+    // Update user data in localStorage
+    let users = JSON.parse(localStorage.getItem('users')) || [];
+    let userIndex = users.findIndex(user => user.username === activeUser.username);
+    if (userIndex !== -1) {
+        users[userIndex] = activeUser;
+    } else {
+        users.push(activeUser);
+    }
+    localStorage.setItem('users', JSON.stringify(users));
+
+    // Display final results
+    document.getElementById('quizz').innerHTML = `
+        <div style="text-align: center; padding: 2rem;">
+            <h2>🎉 Quiz Completed!</h2>
+            <div class="score" style="font-size: 2rem; margin: 1rem 0;">
+                Final Score: ${score} / ${userQuiz.questions.length}
+            </div>
+            <p style="font-size: 1.2rem; color: #6b7280;">
+                ${score === userQuiz.questions.length ? 'Perfect score! 🌟' :
+            score >= userQuiz.questions.length * 0.7 ? 'Great job! 👏' :
+                'Keep practicing! 💪'}
+            </p>
+            <button class="start-btn" onclick="location.reload()" style="margin-top: 1rem;">
+                Take Another Quiz
+            </button>
+        </div>
+    `;
+
+    // Remove next button if it exists
+    let nextBtn = document.getElementById('next-btn');
+    if (nextBtn) {
+        nextBtn.remove();
+    }
+
+    console.log('Quiz completed and saved to localStorage:', currentQuizData);
+    console.log('Updated user data:', activeUser);
 }
 
 
@@ -351,17 +461,13 @@ function loadUserData(username) {
     return activeUser;
 }
 
-let activeUser ;
+let activeUser;
 let userQuiz = [];
 let currentQuizData = {
-    date : Date.now(),
-    answers : [
-        {
-            selected: [],
-            correct: true
-
-        }
-    ]
+    date: new Date().toISOString(),
+    score: 0,
+    answers: [],
+    theme: ""
 };
 
 document.addEventListener("DOMContentLoaded", (event) => {
