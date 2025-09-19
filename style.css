@@ -1,0 +1,28 @@
+:root {
+    --primary-color: #111;
+    --border-color: #e7ebed;
+    --correct-color: #d7f5a9;
+    --correct-border-color: #4bad02;
+    --border-color: #e7ebed;
+}
+
+.answer {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border: solid 1px var(--border-color);
+    border-bottom: solid 3px var(--border-color);
+    border-radius: .5rem;
+    cursor: pointer;
+}
+
+.correct {
+
+    background-color: var(--correct-color);
+    border: solid 1px var(--correct-border-color);
+    border-bottom: solid 3px var(--correct-border-color);
+    border-radius: .5rem;
+    color: var(--primary-color);
+}

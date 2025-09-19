@@ -1,8 +1,9 @@
-let timelimit = 5;
+let timelimit = 20;
 let score = 0;
 let chronoStart = 20;
 let questionTimer;
 let timeUpdater;
+
 
 let data = [
     {
@@ -99,11 +100,11 @@ function shuffleArray(array) {
 }
 
 /**
- * Disable or enable next button depending on enabled 
- * @param {boolean} enabled 
+ * Enable or disable next button depending on disabled 
+ * @param {boolean} disabled 
  */
-function togglenext(enabled) {
-    document.getElementsByClassName('next')[0].disabled = !enabled;
+function toggleNext(disabled) {
+    document.getElementById('next-btn').disabled = disabled;
 }
 
 /**
@@ -124,6 +125,28 @@ function toggleOptions(enabled) {
 function toggleStartQuiz(enabled) {
     document.getElementsByClassName('start-btn')[0].disabled = !enabled;
 }
+
+/**
+ * 
+ * @param {array} arr1 
+ * @param {array} arr2 
+ * @returns true if the arrays contains same elements(order doesn't matter),false otherwise 
+ */
+function areArraysEqualUnordered(arr1, arr2) {
+  if (arr1.length !== arr2.length) {
+    return false;
+  }
+  const sortedArr1 = [...arr1].sort(); // Create copies to avoid modifying original arrays
+  const sortedArr2 = [...arr2].sort();
+
+  for (let i = 0; i < sortedArr1.length; i++) {
+    if (sortedArr1[i] !== sortedArr2[i]) {
+      return false;
+    }
+  }
+  return true;
+}
+
 //
 
 updateScore = () => {
@@ -155,7 +178,7 @@ function showNextQuestion(index, quizQ) {
     currentQuestionFragment.appendChild(questionNode);
     currentQuestionFragment.appendChild(answersNode);
 
-
+    questionNode.setAttribute('data-index',index);
     questionNode.innerText = quizQ[index].question;
     if (quizQ[index].correct.length > 1) {
         let multiAnswers = document.createElement('div');
@@ -188,7 +211,7 @@ function showNextQuestion(index, quizQ) {
     currentQuestionFragment.appendChild(answersNode);
     document.getElementById('quizz').appendChild(currentQuestionFragment);
 
-    togglenext(true);
+    toggleNext(false);
     var time = timelimit
     timeUpdater = setInterval(() => {
         updateTimer(time);
@@ -208,17 +231,20 @@ function showNextQuestion(index, quizQ) {
 }
 
 
-function startQuizz(userdata, theme) {
+function startQuizz(theme) {
     // remove Start Button
     document.getElementsByClassName("start-btn")[0].remove();
-    let userQuiz = data.find((item) => item.theme == "syntax");
+    userQuiz = data.find((item) => item.theme == "syntax");
     shuffleArray(userQuiz.questions);
     showNext();
     showNextQuestion(0, userQuiz.questions);
+    
 }
 
 function handleNext() {
     toggleOptions(false);
+    toggleNext(true);
+    evaluateAnswer();
     // togglenext(false);
     // showResult();
     // Repeat();
@@ -227,11 +253,44 @@ function handleNext() {
 
 function showNext() {
     let nextBtn = document.createElement('button');
-    nextBtn.className = 'next btn';
+    nextBtn.id = 'next-btn';
     nextBtn.textContent = "Suivant";
     document.getElementById('quizz-container').appendChild(nextBtn);
 
     nextBtn.addEventListener("click", handleNext);
+}
+
+function evaluateAnswer(){
+    let selectedOption;
+    let questionIndex = questionNode.dataset['index'];
+    if (userQuiz.questions[questionIndex].correct.length < 2){
+        let option = answersNode.querySelector(`input[name=question_${questionIndex}]:checked`);
+        console.log(option);
+
+        selectedOption = (option == undefined)? null:option.value ;
+        console.log(selectedOption);
+
+        currentQuizData.answers[questionIndex].selected = [selectedOption];
+        console.log(currentQuizData);
+        
+        if(selectedOption !== null && selectedOption == userQuiz.questions[questionIndex].correct[0]){
+            currentQuizData.answers[questionIndex].correct = true;
+            markCorrectAnswer(option);
+        }
+    }
+    
+    let values = [];
+    // let questionIndex = questionNode.dataset.index;
+    // console.log(userQuiz[index]);
+    // let selectedOptions = answersNode.querySelectorAll(`input['name*=question_${questionIndex}']:checked`);
+    // selectedOptions.forEach((option) =>{
+    //     values = option.value;
+    // });
+
+}
+
+function markCorrectAnswer(nodeElem){
+    nodeElem.classList.add('correct')
 }
 
 
@@ -292,6 +351,18 @@ function loadUserData(username) {
     return activeUser;
 }
 
+let activeUser ;
+let userQuiz = [];
+let currentQuizData = {
+    date : Date.now(),
+    answers : [
+        {
+            selected: [],
+            correct: true
+
+        }
+    ]
+};
 
 document.addEventListener("DOMContentLoaded", (event) => {
     toggleStartQuiz((document.getElementById('username').value !== ''));
@@ -301,9 +372,9 @@ document.addEventListener("DOMContentLoaded", (event) => {
     })
     document.getElementsByClassName("start-btn")[0].onclick = () => {
         const username = document.getElementById('username').value;
-        let activeUser = loadUserData(username);
+        activeUser = loadUserData(username);
         let theme = document.getElementById('themes').value;
-        startQuizz(activeUser, theme);
+        startQuizz(theme);
     }
 });
 
